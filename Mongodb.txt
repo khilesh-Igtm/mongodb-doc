@@ -1,0 +1,32 @@
+In mongodb we have database , Collection(similar to table), Documents(similar to rows, and they are saved in json format).
+In relational db like sql , alg alg entities jo hoti thi vo alg alg tables me store hoti , phir jab hume query banani hoti thi include some or all the tables we use join(). but mongodb me saara ka saara data ek hi collection me patak diya jaata hai.
+
+BSON -> Binary JSOn, Bson's binary sturture encodes types and length information, which allows it to be traversed much more quickly compared to JSON.
+
+Mongodb queries:
+
+1) Mongosh -> open mongodb shell
+2) use latest_db -> to use/create a latest_db for work
+3)  db.students.insertOne({name: "Ram", age:12}) -> easy to understand
+4) db.students.find({}) -> show all the data of students collections
+
+5) db.students.updateOne({name: "Ram"},{$set:{idCards:{hasPanCard: false, hashAadharCard: true}}}) -> this will update Ram using $set and includes hasPanCard and hashAadharCard
+Example -> [
+  {
+    _id: ObjectId('68f48b45aa9ca4a514c7025e'),
+    name: 'Ram',
+    age: 12,
+    idCards: { hasPanCard: false, hashAadharCard: true }
+  }
+]
+
+
+6) db.students.updateMany({}, {$set: {hobbies: ['Anime','cooking']}}) -> this will update all the documents by adding hobbies to all.
+
+7) db.students.find({name: 'Ram'}).count() -> length of  doc where name is ram .
+
+8) db.students.find({'idCards.hasPanCard':true}) -> to search in nested documents we need to pass key inside string.
+
+To implement CRUD operations in MOngodb:
+C -> insertOne(data, options) and insertMany(data, options)
+R -> find(filter, options) and findOne(filter, options)
