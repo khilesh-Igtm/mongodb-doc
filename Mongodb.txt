@@ -21,7 +21,7 @@ Example -> [
 ]
 
 
-6) db.students.updateMany({}, {$set: {hobbies: ['Anime','cooking']}}) -> this will update all the documents by adding hobbies to all.
+6) db.students.updateMany({}, {$set: {hobbies: ['Anime','cooking']}}) -> this will update all the documents by adding hobbies to all. But if we pass like .updateMany({age:12}, then it will update all whose age is 12.
 
 7) db.students.find({name: 'Ram'}).count() -> length of  doc where name is ram .
 
@@ -30,3 +30,103 @@ Example -> [
 To implement CRUD operations in MOngodb:
 C -> insertOne(data, options) and insertMany(data, options)
 R -> find(filter, options) and findOne(filter, options)
+U -> updateOne(filter, data, options) , updateMany(filter, data, options) , replaceOne(filter, data, options)
+D -> deleteOne(filter, options), deleteMany(filter, options)
+
+
+9) db.students.find({age: {$lt:12}}) -> age less than 12.
+
+In mongodb whenever we use $ , it means it is a reserved keyword in it like $set, $lt etc.
+
+10) latest_db> db.students.find({},{name:1, _id:0}) -> doing this will return the data with only name , by default it also pass/attach _id that's why we did _id:0 , to not include it in output.
+[ { name: 'Ram' }, { name: 'shyam' } ]
+
+11) Mongodb is schemaless:
+MySQL / SQL database me pehle se structure fix hota hai (schema define karna padta hai) — har row ko same format follow karna padta hai.
+MongoDB me structure fixed nahi hota, har document apne hisaab ka data rakh sakta hai. Tu chahe toh different documents ke andar different fields bhi rakh sakta hai — koi restriction nahi.
+
+
+Atomicity-> Ek operation ya toh poora hoga ya bilkul nahi hoga — beech me adhoora nahi chodega.
+MongoDB document-level atomicity provide karta hai.
+
+Matlab:
+Agar tu ek single document update kar raha hai, toh ya toh poora update hoga ya kuch bhi nahi hoga.
+Wo operation beech me fail nahi hoga ki aadha change ho gaya aur aadha nahi — aisa nahi hota.
+
+“MongoDB provides atomic operations at the document level — yani ek document pe hone vala update ya toh pura apply hoga ya fail, beech me adhura nahi hoga. Multi-document atomicity ke liye transactions use karte hai.”
+
+12)  db.students.find({$or:[{age: {$lte:10}}, {age: {$gte:12}}]}) -> 
+vo students jinki age ya too 10 se kam ya barabar hai ya phir 12 se jada ya barabar vo aaj ye. Matlab age = 11 wale exclude honge, baaki sab aayenge.
+
+
+//////////////////////////$expr method in Mongodb:////////////////////
+
+Normally find() ke andar hum field vs constant comparisons kar sakte hain: db.users.find({ age: { $gt: 18 } })
+
+But agar field vs field compare karna ho?
+Example1:
+"Wo students lao jaha marks > attendance"
+db.students.find({ marks: { $gt: attendance } }) ❌ Yeh galat hai
+
+Solution:$expr allows using aggregation operators inside find().
+db.students.find({
+  $expr: { $gt: ["$marks", "$attendance"] }
+})
+Yaha $marks aur $attendance dono fields compare ho rahe hain.
+
+
+Example2:Wo log jinke salary ka 10% bonus se zyada hai
+db.employees.find({
+  $expr: {
+    $gt: [
+      { $multiply: ["$salary", 0.1] },
+      "$bonus"
+    ]
+  }
+})
+
+
+Example3: Wo orders jaha deliveryDate >= orderDate + 7 days
+db.orders.find({
+  $expr: {
+    $gte: [
+      "$deliveryDate",
+      { $add: ["$orderDate", 7 * 24 * 60 * 60 * 1000] } // 7 days in ms
+    ]
+  }
+})
+
+
+Example4: Wo users jinka age 18 se 30 ke beech hai
+db.users.find({
+  $expr: {
+    $and: [
+      { $gte: ["$age", 18] },
+      { $lte: ["$age", 30] }
+    ]
+  }
+})
+
+
+
+
+//////////////////////////////// $regex //////////////////////////////
+MongoDB me $regex ek operator hota hai jo pattern-based search ke liye use hota hai. Agar tu kisi field me contains, starts with, ya ends with jaisa search karna chahta hai to $regex best hai.
+
+Example1:Simple Contains Search
+ db.users.find({ name: { $regex: "ali", $options: "i" } });
+$options: "i" ka matlab hai case-insensitive.
+Ye "Ali", "Kalib", "TALIB", sab match karega.
+
+Example2: Starts with
+db.users.find({ name: { $regex: "^ka", $options: "i" } });
+✅ Match karega → "Kapil", "karthik"
+❌ Nahi karega → "akansha"
+
+Example 3: Ends With
+db.users.find({ email: { $regex: "@gmail.com$" } });
+
+
+
+13) db.students.find().sort({age:1, name:1}):
+->sort ascending order (chhote → bade) by age and ascending order alphabetically, lekin sirf un rows me jinka age same hai
